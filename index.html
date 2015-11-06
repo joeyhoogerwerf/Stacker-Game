@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="css/style.css">
+	<script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+	<script type="text/javascript">
+
+		var gameLoopInterval;
+		var gameIsOver = 0;
+		var spacebarIsDown = 0;
+
+		var fieldWidth = 9;
+		var fieldHeight = 15;
+
+		var activeColumnNumber = 0; //column number where active stackpiece begins (from left to right)
+		var activeColumnNumbers = [];
+		var stackWeight = 2; //stackweight = 2 -> results in a stackpiece of 3 tiles
+
+		var columnIncrementValue = 1; //amount of tiles skipped in 1 animation cycle
+		var gameSpeed = 200;
+		var speedDifficultyFactor = 12; //speed in ms that gamespeed gains per hit on spacebar
+
+		function init(){
+				
+			console.log('init stacker');
+
+			gameLoopInterval = setInterval(gameLoop, gameSpeed);
+
+			//init keyhandlers
+			$('body').keydown(function(e){
+   				if(e.keyCode == 32){
+   					e.preventDefault(); //prevent auto scroll when hitting spacebar
+
+   					if(spacebarIsDown == 0){
+   						spacebarIsDown = 1;
+   						stopStack();
+   					}
+       			}
+				}).keyup(function(e){ //in this keyup handler alert boxes are used for win/lose views, this is just for demo purposes
+   				if(e.keyCode == 32){
+
+	   				/* !!!!! hackish bugfix to prevent rapid inputs !!!!! */
+					setTimeout(function(){
+						spacebarIsDown = 0;
+					}, 100);
+					
+					if(fieldHeight == 0){
+						alert('You won! \n\nPlay again?');
+						resetGame();
+					}
+
+					else if(gameIsOver == 1){
+						alert('Game over! \n\nPlay again?');
+						resetGame();
+					}
+	   			}
+   			});
+		}
+
+		function gameLoop(){
+
+			//console.log('tick');
+
+			activeColumnNumber += columnIncrementValue;
+
+			//loop amount of tiles in a row
+			for(var i = 1; i <= fieldWidth; i++){
+
+				var currentTile = $('.field-column:nth-child(' + i + ') .field-tile:nth-child(' + fieldHeight + ')');
+
+				//hardcoded if-statement to build a stackpiece of max 3 tiles
+				if(i == activeColumnNumber || i == (activeColumnNumber + (stackWeight - 1)) && stackWeight != 0 || i == (activeColumnNumber + stackWeight)){
+					colorTile(currentTile, 'blue');
+				}
+
+				else{
+					colorTile(currentTile, 'white');
+				}
+			}
+
+			//when stack touches right side of field -> reverse animation
+			if(activeColumnNumber >= (fieldWidth - stackWeight)){
+				columnIncrementValue = -1;
+			}
+
+			//vice versa
+			else if(activeColumnNumber <= 1){
+				columnIncrementValue = 1;
+			}	
+		}
+
+		//logic when stack
+		function stopStack(){
+
+			//make sure there is at least 1 stackpiece in place
+			if(activeColumnNumbers.length > 0){
+
+				var currentStackWeight = stackWeight;
+
+				//loop trough active stackpiece
+				for(var i = 0; i <= currentStackWeight; i++){
+
+					var activeTile = $('.field-column:nth-child(' + (activeColumnNumber + i) + ') .field-tile:nth-child(' + fieldHeight + ')');
+
+					//check if active tile matches tile below by background color, on mismatch -> player gets penalty by losing 1 tile
+					if(activeTile.css('background-color') != activeTile.next().css('background-color')){
+						colorTile(activeTile, 'white');
+						stackWeight--;
+					}
+				}
+			}
+
+			//stop gameloop to prepare for next step
+			clearInterval(gameLoopInterval);
+
+			//when player still has a playable stackpiece -> game continues to next step with faster pace 
+			if(stackWeight > -1){
+				fieldHeight--;
+				gameSpeed -= speedDifficultyFactor;
+				activeColumnNumbers.push(activeColumnNumber);
+				gameLoopInterval = setInterval(gameLoop, gameSpeed);
+			}
+
+			else{
+				gameIsOver = 1;
+			}
+		}
+
+		function colorTile(tile, color){
+			tile.css('background-color', color);
+		}
+
+		//reset game to original state
+		function resetGame(){
+			gameIsOver = 0;
+			fieldHeight = 15;
+			activeColumnNumber = 0;
+			activeColumnNumbers = [];
+			stackWeight = 2;
+			columnIncrementValue = 1;
+			gameSpeed = 200;
+			colorTile($('.field-tile'), 'white');
+			clearInterval(gameLoopInterval);
+			gameLoopInterval = setInterval(gameLoop, gameSpeed);
+		}
+
+		$(function(){
+			init();
+		});
+
+	</script>
+</head>
+<body>	
+	<h1>STACKER</h1>
+	<div id="field">
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+
+		<div class="field-column">
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+			<div class="field-tile"></div>
+		</div>
+	</div>
+</body>
+</html>
